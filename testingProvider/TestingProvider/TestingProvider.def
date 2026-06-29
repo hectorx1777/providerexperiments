@@ -1,0 +1,22 @@
+LIBRARY TestingProvider
+EXPORTS
+    GetFileVersionInfoSizeW = Stub_GetFileVersionInfoSizeW
+    VerQueryValueW          = Stub_VerQueryValueW
+    InitCommonControlsEx    = Stub_InitCommonControlsEx
+    PathFindFileNameW       = Stub_PathFindFileNameW
+    PathFileExistsW         = Stub_PathFileExistsW
+    PathIsDirectoryW        = Stub_PathIsDirectoryW
+    RegOpenKeyExW           = Stub_RegOpenKeyExW
+    RegQueryValueExW        = Stub_RegQueryValueExW
+    CreateEventW            = Stub_CreateEventW
+    WaitForSingleObjectEx   = Stub_WaitForSingleObjectEx
+    GetEnvironmentVariableW = Stub_GetEnvironmentVariableW
+    ExpandEnvironmentStringsW = Stub_ExpandEnvironmentStringsW
+    GetSystemDirectoryW     = Stub_GetSystemDirectoryW
+    GetWindowsDirectoryW    = Stub_GetWindowsDirectoryW
+    GetTempPathW            = Stub_GetTempPathW
+    FormatMessageW          = Stub_FormatMessageW
+    LocalAlloc              = Stub_LocalAlloc
+    LocalFree               = Stub_LocalFree
+    IsDebuggerPresent       = Stub_IsDebuggerPresent
+    OutputDebugStringW      = Stub_OutputDebugStringW

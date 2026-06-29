@@ -1,0 +1,57 @@
+# Build outputs
+*.exe
+*.dll
+*.lib
+*.exp
+*.obj
+*.o
+*.ilk
+*.iobj
+*.ipdb
+*.pdb
+*.idb
+*.pch
+*.res
+*.recipe
+
+# Linker / compiler intermediates
+*.tlog/
+*.log
+*.lastbuildstate
+*.FileListAbsolute.txt
+*.Build.CppClean.log
+x64/
+x86/
+Debug/
+Release/
+Win32/
+[Dd]ebug/
+[Rr]elease/
+ipch/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Merge / backup
+*.bak
+*.backup
+*.orig
